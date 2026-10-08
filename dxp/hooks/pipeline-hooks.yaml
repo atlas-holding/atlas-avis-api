@@ -1,0 +1,49 @@
+# dxp/hooks/pipeline-hooks.yaml -- ADR S0-080 (Pipeline Hooks)
+#
+# Vide par defaut -- ce fichier est cree automatiquement au provisioning
+# de atlas-avis-api pour rendre le mecanisme decouvrable, mais ne
+# declare volontairement aucun hook actif. Suppression sans risque si tu
+# n'en as pas besoin.
+#
+# Un hook s'insere avant (pre) ou apres (post) l'une des 6 etapes du
+# socle pipeline : clone, build, test, push, deploy, run. Deux facons de
+# declarer un hook :
+#
+# 1) Reference a un step du catalogue plateforme (deja approuve par
+#    admin-client, s'execute des le premier run) :
+#
+#   hooks:
+#     - stage: deploy
+#       position: pre
+#       fromCatalog: db-migration-postgres
+#
+# 2) Step libre, hors catalogue -- ton image, ta commande. Passe par une
+#    approbation admin-client la premiere fois (visible dans l'onglet
+#    "Hooks" de ce service sur le portail, section "En attente
+#    d'approbation") ; approuve une fois, il tourne normalement a chaque
+#    run suivant tant que son contenu ne change pas -- l'approbation est
+#    liee a image+command+args+env, PAS a name/stage/position : renommer
+#    ce hook ou le deplacer vers une autre etape garde l'approbation,
+#    modifier l'image, la commande, les arguments ou la liste des
+#    variables env la redemande :
+#
+#   hooks:
+#     - stage: test
+#       position: pre
+#       name: seed-data
+#       image: harbor.dxp/dxp/seed-tool:1.0.0
+#       command: ["./seed.sh"]
+#       args: ["--env=dev"]
+#       timeoutSeconds: 120
+#       env:
+#         - name: DB_HOST
+#           valueFrom: serviceEnv
+#
+# Limites (deterministes, non contournables) : 5 steps maximum par
+# fichier, 300s de timeout maximum par step, image obligatoirement issue
+# du registre Harbor de l'organisation. env: n'accepte que
+# "valueFrom: serviceEnv" -- jamais de valeur en dur (secrets).
+#
+# Documentation complete : ADR_S0-080_Pipeline_Hooks.md.
+
+hooks: []

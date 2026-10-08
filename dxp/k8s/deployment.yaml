@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: atlas-avis-api
+  labels:
+    app: atlas-avis-api
+    dxp.io/managed: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: atlas-avis-api
+  template:
+    metadata:
+      labels:
+        app: atlas-avis-api
+        backstage.io/kubernetes-id: atlas-avis-api
+    spec:
+      nodeSelector:
+        role: workload
+      tolerations:
+      - key: role
+        operator: Equal
+        value: workload
+        effect: NoSchedule
+      containers:
+      - name: atlas-avis-api
+        image: harbor.dxp/dxp/atlas-avis-api:latest
+        imagePullPolicy: Always
+        envFrom:
+        # S105 -- token renomme (etait PLACEHOLDER_DB_SECRET, majuscules
+        # + underscore invalides pour un nom K8s -- RFC 1123 -- faisait
+        # echouer la sync ArgoCD pour TOUT service sans BDD liee, y compris
+        # ceux deja e2e-valides). Substitue par dxp-app-link-database.yaml
+        # uniquement si un service-ref database est ajoute apres coup.
+        - secretRef:
+            name: placeholder-db-secret
+            optional: true
+        env:
+        - name: ALLOWED_ORIGINS
+          value: ""
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 50m
+            memory: 32Mi
+          limits:
+            cpu: 200m
+            memory: 64Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: atlas-avis-api
+spec:
+  selector:
+    app: atlas-avis-api
+  ports:
+  - port: 80
+    targetPort: 8080
+  type: ClusterIP
+---
+# S108d -- Ingress ajoute (meme bloc que nodejs/react) : sans lui,
+# buildEnvInfo (envs_handler.go) ne trouve aucune Ingress dans le
+# namespace et le portail n affiche pas "Public URL" dans l onglet
+# d environnement -- impossible de verifier d un clic que l API repond.
+# tls: sans secretName -- voir le commentaire S91 du template nodejs
+# (enregistre le host pour la redirection HTTP->HTTPS, certificat par
+# defaut du controleur).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: atlas-avis-api
+  labels:
+    app: atlas-avis-api
+    dxp.io/managed: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - atlas-avis-api.68.221.5.247.nip.io
+  rules:
+  - host: atlas-avis-api.68.221.5.247.nip.io
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: atlas-avis-api
+            port:
+              number: 80
