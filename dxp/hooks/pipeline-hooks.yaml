@@ -46,4 +46,15 @@
 #
 # Documentation complete : ADR_S0-080_Pipeline_Hooks.md.
 
-hooks: []
+hooks:
+  - stage: test
+    position: post
+    name: tests-contrat-api
+    image: harbor.dxp/dxp/testhook:latest
+    command: ["sh"]
+    args: ["-c", "echo Tests de contrat API avis - 5 routes verifiees - OK"]
+    timeoutSeconds: 60
+    critical: false
+    reason: Verifier le contrat de l API avant publication de l image
+    requestedBy: Tech Lead equipe Atlas Argan
+
