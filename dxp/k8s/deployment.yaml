@@ -34,7 +34,7 @@ spec:
         # ceux deja e2e-valides). Substitue par dxp-app-link-database.yaml
         # uniquement si un service-ref database est ajoute apres coup.
         - secretRef:
-            name: placeholder-db-secret
+            name: dxp-db-atlas-avis-db
             optional: true
         env:
         - name: ALLOWED_ORIGINS
