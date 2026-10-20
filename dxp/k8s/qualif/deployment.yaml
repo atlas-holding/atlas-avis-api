@@ -25,7 +25,7 @@ spec:
         effect: NoSchedule
       containers:
       - name: atlas-avis-api
-        image: harbor.harbor.svc.cluster.local/dxp/atlas-avis-api:d92741b
+        image: harbor.harbor.svc.cluster.local/dxp/atlas-avis-api:1a513c9
         imagePullPolicy: Always
         envFrom:
         # S105 -- token renomme (etait PLACEHOLDER_DB_SECRET, majuscules
@@ -87,7 +87,7 @@ spec:
   - hosts:
     - atlas-avis-api-qualif.68.221.5.247.nip.io
   rules:
-  - host: atlas-avis-api.68.221.5.247.nip.io
+  - host: atlas-avis-api-qualif.68.221.5.247.nip.io
     http:
       paths:
       - path: /
