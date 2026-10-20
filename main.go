@@ -487,7 +487,12 @@ func dsn() string {
 	if pw == "" {
 		return ""
 	}
-	host := os.Getenv("DB_HOST")
+	// Hote fourni par DxP (POSTGRES_HOST, secrets d'environnement, L0d) ;
+	// repli DB_HOST puis hote de dev (secret de dev sans POSTGRES_HOST).
+	host := os.Getenv("POSTGRES_HOST")
+	if host == "" {
+		host = os.Getenv("DB_HOST")
+	}
 	if host == "" {
 		host = "atlas-avis-db.atlas-avis-db-dev.svc.cluster.local"
 	}
